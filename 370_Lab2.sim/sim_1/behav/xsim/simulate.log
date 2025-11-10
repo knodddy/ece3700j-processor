@@ -1,0 +1,7 @@
+Time resolution is 1 ps
+[100000] addi t0, x0, 67 | t0 = 67, t1 = 0, t2 = 0, PC = 0x00000004, EX_t0 = 67, EX_t1 = 0, EX_t2 = 0, EX_PC = 0x00000004 PASS
+[200000] add  t1, x0, t0 | t0 = 67, t1 = 67, t2 = 0, PC = 0x00000008, EX_t0 = 67, EX_t1 = 67, EX_t2 = 0, EX_PC = 0x00000008 PASS
+[300000] beq  t1, t0, IS_EQUAL | t0 = 67, t1 = 67, t2 = 0, PC = 0x00000010, EX_t0 = 67, EX_t1 = 67, EX_t2 = 0, EX_PC = 0x00000010 PASS
+[400000] IS_EQUAL: addi t2, x0, -1 | t0 = 67, t1 = 67, t2 = -1, PC = 0x00000014, EX_t0 = 67, EX_t1 = 67, EX_t2 = -1, EX_PC = 0x00000014 PASS
+[400000] SUMMARY | All tests PASSED
+$finish called at time : 410 ns : File "C:/Users/knoddy/Documents/Vivado/370_Lab2/370_Lab2.srcs/sim_1/new/inst_test_beq.v" Line 85

@@ -35,6 +35,7 @@ module control(
     
     always @* begin
         case (opcode)
+            //add,sub,and,or,sll,srl,sra
             7'b0110011: begin
                 alu_src    = 1'b0;
                 alu_op     = 2'b10;
@@ -45,6 +46,7 @@ module control(
                 mem_to_reg = 1'b0;
                 reg_write  = 1'b1;
             end
+            //lw,lb,lbu
             7'b0000011: begin
                 alu_src    = 1'b1;
                 alu_op     = 2'b00;
@@ -55,6 +57,7 @@ module control(
                 mem_to_reg = 1'b1;
                 reg_write  = 1'b1;
             end
+            //sw,sb
             7'b0100011: begin
                 alu_src    = 1'b1;
                 alu_op     = 2'b00;
@@ -65,6 +68,7 @@ module control(
                 mem_to_reg = 1'b0;
                 reg_write  = 1'b0;
             end
+            //beq,bne,bge,blt
             7'b1100011: begin
                 alu_src    = 1'b0;
                 alu_op     = 2'b01;
@@ -75,6 +79,7 @@ module control(
                 mem_to_reg = 1'b0;
                 reg_write  = 1'b0;
             end
+            //addi, andi,slli,srli
             7'b0010011: begin
                 alu_src    = 1'b1;
                 alu_op     = 2'b00;
@@ -85,6 +90,7 @@ module control(
                 mem_to_reg = 1'b0;
                 reg_write  = 1'b1;
             end
+            
             default: begin
                 alu_src=0; alu_op=2'b00; mem_write=0; mem_read=0;
                 branch=0; branch_ne=0; mem_to_reg=0; reg_write=0;

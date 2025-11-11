@@ -30,11 +30,14 @@ module alu(
     
     always @* begin
         case (control)
-            4'b0000: d = a & b;
-            4'b0001: d = a | b;
-            4'b0010: d = a + b;
-            4'b0110: d = a - b;
-            default: d = 32'b0;
+        //+,-,and,or, shift left, shift right
+            4'b0000: d = a & b;               // AND
+            4'b0001: d = a | b;               // OR
+            4'b0010: d = a + b;               // ADD
+            4'b0110: d = a - b;               // SUB
+            4'b0011: d = a << b[4:0];         // SLL shift left logic
+            4'b0100: d = a >> b[4:0];         // SRL shift right logic
+            4'b0101: d = $signed(a) >>> b[4:0]; // SRA shift right arithmetic
         endcase
         
         if (d == 32'b0)

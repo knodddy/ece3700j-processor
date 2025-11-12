@@ -39,7 +39,7 @@ module reg_file(
     assign data_1 = (reg_1 == 5'd0) ? 32'd0 : regs[reg_1];
     assign data_2 = (reg_2 == 5'd0) ? 32'd0 : regs[reg_2];
 
-    always @(posedge clock) begin // need clock cause of timing sensitive
+    always @(negedge clock) begin // need clock cause of timing sensitive
         if (reg_write && (write_reg != 5'd0))
             regs[write_reg] <= write_data;
     end

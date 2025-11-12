@@ -36,6 +36,10 @@ module imm_gen(
             7'b1100011: // beq & bne immediate
 //                imm = {{20{inst[31]}}, inst[31], inst[7], inst[30:25], inst[11:8]};
                 imm = {{19{inst[31]}}, inst[31], inst[7], inst[30:25], inst[11:8], 1'b0};
+            7'b1101111: // J-type: JAL
+                imm = {{11{inst[31]}}, inst[31], inst[19:12], inst[20], inst[30:21], 1'b0};
+            7'b1100111: // I-type: JALR 
+                imm = {{20{inst[31]}}, inst[31:20]};
             default:
                 imm = 32'b0;
         endcase

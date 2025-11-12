@@ -39,7 +39,8 @@ module alu_control(
             endcase 
         end
         else if (alu_op == 2'b01) begin //beq,bne,bge,blt
-            control = 4'b0110;
+            if (funct3==3'b000 || funct3==3'b001) control = 4'b0110; //beq, bne
+            else control = 4'b0111; //bge, blt
         end
         else if (alu_op == 2'b10) begin//add,sub,AND,OR，sll,srl,sra : R type
             case ({inst_30, funct3})

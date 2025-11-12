@@ -38,6 +38,8 @@ module alu(
             4'b0011: d = a << b[4:0];         // SLL shift left logic
             4'b0100: d = a >> b[4:0];         // SRL shift right logic
             4'b0101: d = $signed(a) >>> b[4:0]; // SRA shift right arithmetic
+            4'b0111: d = ($signed(a) < $signed(b)) ? 32'd1 : 32'd0; // SLT (signed)
+            default: d = 32'b0;
         endcase
         
         if (d == 32'b0)

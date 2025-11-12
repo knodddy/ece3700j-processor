@@ -1,2 +1,57 @@
+# General temporary files
+*~
+#*#
+.\#*
+
+# Vivado / generated build artefacts
+*.cache/
+*.runs/
+*.hw/
+*.sim/
+*.log
+*.jou
+*.str
+*.dcp
+*.xpr.backup
+*.xpr.orig
+
+# Bitstreams / binaries you can regenerate
+*.bit
+*.bin
+*.mcs
+*.svf
+*.image
+*.elf
+*.out
+
+# Netlists / simulation dumps
+*.edf
+*.edif
+*.vn
+*.vm
+*.sdf
+*.vcd
+*.saif
+*.wdb
+
+# IP user files / local machine user settings
+*.ip_user_files/
+*.user/
+
+# ISE / legacy directories (if ever used)
+.Xil/
+.tab_*/
+
+# Subdirectories of Vivado build
+370_Lab2.cache/
+370_Lab2.hw/
+370_Lab2.runs/
+370_Lab2.sim/
+
+# Other generated logs
+*.rpt
+*.vhd_db/
+
+# .zip archives for submission
 *.zip
-370_Lab2.cache/*
+

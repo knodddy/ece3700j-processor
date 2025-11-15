@@ -70,7 +70,7 @@ Lab 3 Report --- Pipelined Processor}}
 \newpage
 \section{Introduction}
 
-This lab transitions from the single-cycle processor of Lab 2 to a 32-bit, 5-stage pipelined RISC-V processor. The pipelined architecture allows for greater instruction throughput by overlapping the execution of multiple instructions. The design is implemented in synthesizable Verilog.
+This lab transitions from the single-cycle processor of Lab 2 to a 32-bit, 5-stage pipelined RISC-V processor. The pipelined architecture allows for greater instruction throughput by overlapping the execution of multiple instructions. The design is implemented in synthesizable Verilog HDL.
 
 The processor supports an expanded subset of the RV32I instruction set, including:
 \begin{itemize}
@@ -120,71 +120,93 @@ The \texttt{RegWrite} signal enables the write to the destination register \text
 
 \section{Instruction Simulation Results}
 
-This section provides brief explanations and simulation waveform placeholders for the instructions specified in the lab manual. The waveforms demonstrate the flow of data and control signals through the 5-stage pipeline.
+This section provides brief explanations and simulation waveforms for the key instructions specified in the lab manual. The waveforms demonstrate the flow of data and control signals through the 5-stage pipeline, incl. certain instruction lines from the \texttt{Lab3\_testcase.s} program.
 
 \subsection{\texttt{add} Instruction}
-\textbf{Explanation:} The \texttt{add} instruction is an R-type instruction. In the ID stage, it reads two source registers (\texttt{rs1}, \texttt{rs2}). In the EX stage, the \texttt{alu\_src} mux selects \texttt{rs2}, and the ALU performs the operation \texttt{rs1 + rs2}. The result bypasses the MEM stage and is written back to the destination register (\texttt{rd}) from the \texttt{mem\_wb\_reg} in the WB stage.
+\textbf{Explanation:} This waveform captures the Write-Back (WB) stage of the instruction \texttt{add t1, t0, t0} (fetched from PC \texttt{0x0C}). The cursor is at \texttt{t=42ns}, 4 cycles after its fetch at \texttt{t=18ns}.
+\begin{itemize}
+    \item \textbf{ID (at t=24ns):} Reads \texttt{rs1} (\texttt{t0}) and \texttt{rs2} (\texttt{t0}), both containing \texttt{0x193}.
+    \item \textbf{EX (at t=30ns):} The ALU computes \texttt{0x193 + 0x193 = 0x326}.
+    \item \textbf{WB (at t=42ns):} The cursor shows the result being written: \texttt{wb\_reg\_write} is \texttt{1}, \texttt{wb\_rd} is \texttt{06} (register \texttt{t1}), and \texttt{wb\_write\_data} is the correct result, \texttt{0x326}. The console at this time confirms \texttt{t1 = 0x00000326}.
+\end{itemize}
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.9\linewidth]{Figures/add_sim.png} % <-- Add your screenshot here
-    \framebox{\parbox{0.8\textwidth}{\centering \vspace{5cm} \textbf{Placeholder: \texttt{add} Simulation Waveform} \vspace{5cm}}}
-    \caption{Simulation waveform for the \texttt{add} instruction.}
+    \includegraphics[width=0.9\linewidth]{Figures/add_sim.jpeg}
+    \caption{Simulation of \texttt{add t1, t0, t0} (PC \texttt{0x0C}) in its Write-Back stage.}
     \label{fig:add_sim}
 \end{figure}
 
 \subsection{\texttt{addi} Instruction}
-\textbf{Explanation:} The \texttt{addi} instruction is an I-type instruction. In ID, it reads \texttt{rs1} and generates a sign-extended immediate (\texttt{imm}). In the EX stage, the \texttt{alu\_src} mux selects the \texttt{imm}, and the ALU computes \texttt{rs1 + imm}. This result is then passed through MEM and written to \texttt{rd} in the WB stage.
+\textbf{Explanation:} This waveform shows the WB stage of the first instruction, \texttt{addi t0, x0, 0x193} (PC \texttt{0x00}). The instruction is fetched at \texttt{t=0ns} and reaches the WB stage at the cursor, \texttt{t=24ns}.
+\begin{itemize}
+    \item \textbf{EX (at t=12ns):} The ALU computes \texttt{rs1} (value \texttt{0} from \texttt{x0}) + the immediate \texttt{0x193}. The \texttt{alu\_result} is \texttt{0x193}.
+    \item \textbf{WB (at t=24ns):} The WB signals are active: \texttt{wb\_reg\_write} is \texttt{1}, \texttt{wb\_rd} is \texttt{05} (register \texttt{t0}), and \texttt{wb\_write\_data} is \texttt{0x193}. The console confirms the write: \texttt{t0 = 0x00000193}.
+\end{itemize}
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.9\linewidth]{Figures/addi_sim.png} % <-- Add your screenshot here
-    \framebox{\parbox{0.8\textwidth}{\centering \vspace{5cm} \textbf{Placeholder: \texttt{addi} Simulation Waveform} \vspace{5cm}}}
-    \caption{Simulation waveform for the \texttt{addi} instruction.}
+    \includegraphics[width=0.9\linewidth]{Figures/addi_sim.jpeg} 
+    \caption{Simulation of \texttt{addi t0, x0, 0x193} (PC \texttt{0x00}) in its Write-Back stage.}
     \label{fig:addi_sim}
 \end{figure}
 
 \subsection{\texttt{lw} Instruction}
-\textbf{Explanation:} The \texttt{lw} instruction is an I-type load. In EX, the ALU computes the effective memory address (\texttt{rs1 + imm}). In the MEM stage, \texttt{MemRead} is asserted, and the \texttt{data\_mem} is read at that address. In the WB stage, the \texttt{MemtoReg} signal selects this data (from \texttt{wb\_read\_data}) to be written back to \texttt{rd}.
+\textbf{Explanation:} This waveform shows the WB stage of the \texttt{lw t4, 0(sp)} instruction (PC \texttt{0x110}). The cursor is at \texttt{t=426ns}.
+\begin{itemize}
+    \item \textbf{EX (at t=414ns):} The ALU calculates the memory address (\texttt{sp + 0}).
+    \item \textbf{MEM (at t=420ns):} The \texttt{ex\_mem\_mem\_read} signal (not pictured) is \texttt{1}. The \texttt{data\_mem} is read, and the value \texttt{0xffcd8000} (which was stored by the \texttt{sw} instruction) is passed to the MEM/WB register.
+    \item \textbf{WB (at t=426ns):} The \texttt{wb\_mem\_to\_reg} signal (not pictured) is \texttt{1}, selecting the data from memory. \texttt{wb\_reg\_write} is \texttt{1}, \texttt{wb\_rd} is \texttt{1d} (hex, or \texttt{29} decimal for \texttt{t4}), and \texttt{wb\_write\_data} is \texttt{ffcd8000}, the value loaded from memory.
+\end{itemize}
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.9\linewidth]{Figures/lw_sim.png} % <-- Add your screenshot here
-    \framebox{\parbox{0.8\textwidth}{\centering \vspace{5cm} \textbf{Placeholder: \texttt{lw} Simulation Waveform} \vspace{5cm}}}
-    \caption{Simulation waveform for the \texttt{lw} instruction.}
+    \includegraphics[width=0.9\linewidth]{Figures/lw_sim.jpeg} 
+    \caption{Simulation of \texttt{lw t4, 0(sp)} (PC \texttt{0x110}) in its Write-Back stage.}
     \label{fig:lw_sim}
 \end{figure}
 
 \subsection{\texttt{sw} Instruction}
-\textbf{Explanation:} The \texttt{sw} instruction is an S-type store. In ID, it reads \texttt{rs1} (base address) and \texttt{rs2} (data to store). In EX, the ALU computes the effective address (\texttt{rs1 + imm}). In the MEM stage, \texttt{MemWrite} is asserted, and the data from \texttt{rs2} (which has been passed through the pipeline registers) is written into \texttt{data\_mem}. This instruction does not write to the register file, so \texttt{RegWrite} is 0.
+\textbf{Explanation:} This waveform captures the MEM stage of the \texttt{sw t0, 0(sp)} instruction (PC \texttt{0x108}), which occurs at \texttt{t=408ns}.
+\begin{itemize}
+    \item \textbf{EX (at t=402ns):} The ALU calculates the memory address (\texttt{sp + 0}).
+    \item \textbf{MEM (at t=408ns):} The cursor is placed here. The key signals are in the EX/MEM register: \texttt{ex\_mem\_mem\_write} is \texttt{1}, and \texttt{ex\_mem\_write\_data} holds the value of \texttt{t0} (\texttt{0xffcd8000}), which is being written to data memory at this cycle.
+    \item \textbf{WB (at t=414ns):} \texttt{wb\_reg\_write} is \texttt{0}, as \texttt{sw} does not write to the register file.
+\end{itemize}
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.9\linewidth]{Figures/sw_sim.png} % <-- Add your screenshot here
-    \framebox{\parbox{0.8\textwidth}{\centering \vspace{5cm} \textbf{Placeholder: \texttt{sw} Simulation Waveform} \vspace{5cm}}}
-    \caption{Simulation waveform for the \texttt{sw} instruction.}
+    \includegraphics[width=0.9\linewidth]{Figures/sw_sim.jpeg} 
+    \caption{Simulation of \texttt{sw t0, 0(sp)} (PC \texttt{0x108}) in its Memory stage.}
     \label{fig:sw_sim}
 \end{figure}
 
 \subsection{\texttt{beq} Instruction}
-\textbf{Explanation:} The \texttt{beq} instruction is a B-type branch. In ID, it reads \texttt{rs1} and \texttt{rs2}. In EX, the ALU subtracts them and the \texttt{compare} module checks the \texttt{zero} flag. If the condition (\texttt{rs1 == rs2}) is met, the \texttt{branch\_meet} signal is asserted. This signal, along with \texttt{branch}, controls the \texttt{check\_sel} module, which tells the \texttt{pc\_branch\_selector} mux in the IF stage to select the branch target address (\texttt{PC + imm}) for the next clock cycle.
+\textbf{Explanation:} This waveform shows a \textit{taken} branch for the instruction \texttt{beq t2, t0, right\_branch\_3} (PC \texttt{0x80}). The instruction is in its EX stage at \texttt{t=204ns}.
+\begin{itemize}
+    \item \textbf{EX (at t=204ns):} The ALU compares \texttt{t2} and \texttt{t0} (both hold \texttt{0xffcd8000}). Since they are equal, \texttt{branch\_meet} is asserted to \texttt{1}.
+    \item \textbf{Branch Logic:} Because \texttt{branch\_meet} is \texttt{1}, the \texttt{final\_sel} signal becomes \texttt{1}, selecting the branch target address.
+    \item \textbf{IF (at t=210ns):} The \texttt{pc} register is updated to \texttt{0x9C} (the address of \texttt{right\_branch\_3}) instead of the sequential \texttt{0x84}, confirming the branch was successful.
+\end{itemize}
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.9\linewidth]{Figures/beq_sim.png} % <-- Add your screenshot here
-    \framebox{\parbox{0.8\textwidth}{\centering \vspace{5cm} \textbf{Placeholder: \texttt{beq} Simulation Waveform (Branch Taken)} \vspace{5cm}}}
-    \caption{Simulation waveform for the \texttt{beq} instruction.}
+    \includegraphics[width=0.9\linewidth]{Figures/beq_sim.jpeg} 
+    \caption{Simulation of a taken \texttt{beq} instruction (PC \texttt{0x80}) in its Execute stage.}
     \label{fig:beq_sim}
 \end{figure}
 
 \subsection{\texttt{jal} Instruction}
-\textbf{Explanation:} The \texttt{jal} instruction is a J-type jump. The jump target address (\texttt{PC + imm}) is computed in the EX stage and selected by the \texttt{pc\_branch\_selector} mux in the IF stage (controlled by \texttt{wb\_sel} and \texttt{jump}). Simultaneously, the return address (\texttt{PC + 4}) is passed through the pipeline. In the WB stage, the \texttt{jump} signal helps select this \texttt{PC + 4} value (from \texttt{wb\_pc\_plus4}) to be written back to the destination register \texttt{rd} (e.g., \texttt{x1}, the return address register).
+\textbf{Explanation:} This waveform captures the WB stage of the \texttt{jal x1, memory\_test} instruction (PC \texttt{0xF8}) at \texttt{t=396ns}. This instruction performs two actions: jumping and linking.
+\begin{itemize}
+    \item \textbf{The Jump (at t=384ns):} In the EX stage, the \texttt{jump} signal is \texttt{1} and \texttt{final\_sel} becomes \texttt{1}. At the next clock edge (\texttt{t=390ns}), the \texttt{pc} is updated to the jump target, \texttt{0x108} (the address of \texttt{memory\_test}).
+    \item \textbf{The Link (at t=396ns):} The cursor shows the return address being saved. \texttt{wb\_reg\_write} is \texttt{1}, \texttt{wb\_rd} is \texttt{01} (register \texttt{x1}), and \texttt{wb\_write\_data} is \texttt{0xFC}, which is the correct return address (\texttt{PC+4}, or \texttt{0xF8 + 4}).
+\end{itemize}
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.9\linewidth]{Figures/jal_sim.png} % <-- Add your screenshot here
-    \framebox{\parbox{0.8\textwidth}{\centering \vspace{5cm} \textbf{Placeholder: \texttt{jal} Simulation Waveform} \vspace{5cm}}}
-    \caption{Simulation waveform for the \texttt{jal} instruction.}
+    \includegraphics[width=0.9\linewidth]{Figures/jal_sim.jpeg} 
+    \caption{Simulation of \texttt{jal x1, memory\_test} (PC \texttt{0xF8}) in its Write-Back stage.}
     \label{fig:jal_sim}
 \end{figure}
 
@@ -195,8 +217,7 @@ The Verilog design was synthesized using Xilinx Vivado to verify its synthesizab
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=\linewidth]{Figures/RTL_schematic_pipelined.png} % <-- Add your screenshot here
-    \framebox{\parbox{0.8\textwidth}{\centering \vspace{10cm} \textbf{Placeholder: Pipelined Processor RTL Schematic} \vspace{10cm}}}
+    \includegraphics[width=\linewidth]{Figures/RTL_schematic_pipelined.jpeg} 
     \caption{Vivado-generated RTL schematic of the 5-Stage Pipelined Processor.}
     \label{fig:rtl}
 \end{figure}
@@ -204,7 +225,7 @@ The Verilog design was synthesized using Xilinx Vivado to verify its synthesizab
 \section{Source Code Listing}
 \label{sec:source}
 
-The complete Verilog source code (including \texttt{top} and all instantiated submodules) is provided as \texttt{lab3\_top.v} in the submission files.
+The complete Verilog source code (including \texttt{top} design and all instantiated submodules) is provided in the submission \texttt{lab3.zip} on Canvas.
 
 \section{Conclusion}
 
@@ -213,7 +234,7 @@ A 32-bit, 5-stage pipelined RISC-V processor was successfully designed, implemen
 Key outcomes:
 \begin{itemize}
     \item A 5-stage pipeline (IF, ID, EX, MEM, WB) was implemented, with pipeline registers passing data and control signals between stages.
-    \item The datapath and control logic were designed to handle R, I, S, B, and J instruction formats.
+    \item The datapath and control logic were designed to handle R, I, S, B, and J-type instruction formats.
     \item Simulation of key instructions (\texttt{add}, \texttt{addi}, \texttt{lw}, \texttt{sw}, \texttt{beq}, \texttt{jal}) confirmed correct data flow, control signal generation, and pipeline operation for each instruction type.
     \item The design was successfully synthesized in Vivado, confirming the RTL is synthesizable and producing a schematic that matches the intended pipelined architecture.
 \end{itemize}
@@ -222,7 +243,7 @@ This lab demonstrates the fundamental principles of pipelined processor design, 
 
 \newpage
 \begin{thebibliography}{99} 
-\bibitem{Lab3} ECE3700J Teaching Group. \texttt{T6 Pipelined Processor.pdf}, \texttt{Lab3.pdf}, \texttt{Lab3\_testcase.s}, and \texttt{Lab3\_testcase.txt}. Retrieved on 27 Oct 2025 from \hyperlink{site}{oc.sjtu.edu.cn}.
+\bibitem{Lab3} ECE3700J Teaching Team. \texttt{T6 Pipelined Processor.pdf}, \texttt{Lab3.pdf}, \texttt{Lab3\_testcase.s}, and \texttt{Lab3\_testcase.txt}. Retrieved on 27 Oct 2025 from \hyperlink{site}{oc.sjtu.edu.cn}.
 \end{thebibliography}
 
 \end{document}

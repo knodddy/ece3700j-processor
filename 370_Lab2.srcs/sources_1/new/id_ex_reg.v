@@ -5,6 +5,8 @@ module id_ex_reg(
   input      [31:0]  id_pc,
   input      [31:0]  id_rs1_data,
   input      [31:0]  id_rs2_data,
+  input      [4:0]   id_rs1_addr,
+  input      [4:0]   id_rs2_addr,
   input      [31:0]  id_imm,
   input      [2:0]   id_funct3,
   input              id_inst30,
@@ -24,6 +26,8 @@ module id_ex_reg(
   output reg [31:0]  ex_pc,
   output reg [31:0]  ex_rs1_data,
   output reg [31:0]  ex_rs2_data,
+  output reg [4:0]   ex_rs1_addr,
+  output reg [4:0]   ex_rs2_addr,
   output reg [31:0]  ex_imm,
   output reg [2:0]   ex_funct3,
   output reg         ex_inst30,
@@ -45,6 +49,8 @@ module id_ex_reg(
     ex_pc         = 32'd0;
     ex_rs1_data   = 32'd0;
     ex_rs2_data   = 32'd0;
+    ex_rs1_addr   = 5'd0;
+    ex_rs2_addr   = 5'd0;
     ex_imm        = 32'd0;
     ex_funct3     = 3'd0;
     ex_inst30     = 1'b0;
@@ -66,6 +72,8 @@ module id_ex_reg(
     ex_pc         <= id_pc;
     ex_rs1_data   <= id_rs1_data;
     ex_rs2_data   <= id_rs2_data;
+    ex_rs1_addr   <= id_rs1_addr;
+    ex_rs2_addr   <= id_rs2_addr;
     ex_imm        <= id_imm;
     ex_funct3     <= id_funct3;
     ex_inst30     <= id_inst30;

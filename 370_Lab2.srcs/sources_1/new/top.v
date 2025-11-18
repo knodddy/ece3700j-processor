@@ -92,6 +92,11 @@ module top(
 
     imm_gen i_imm_gen(.inst(if_id_inst), .imm(imm));
 
+    // source register numbers in ID stage
+    wire [4:0] id_rs1_addr, id_rs2_addr;
+    assign id_rs1_addr = if_id_inst[19:15];
+    assign id_rs2_addr = if_id_inst[24:20];
+
     wire [31:0] id_ex_pc, id_ex_rs1, id_ex_rs2, id_ex_imm;
     wire [2:0] id_ex_funct3;
     wire id_ex_inst30;
@@ -100,11 +105,18 @@ module top(
     wire [1:0] id_ex_alu_op, id_ex_br_type, id_ex_wb_sel;
     wire id_ex_alu_src;
 
+    // rs1/rs2 indices in EX + forwarding control
+    wire [4:0] id_ex_rs1_addr, id_ex_rs2_addr;
+    wire [1:0] forwardA, forwardB;
+    wire [31:0] ex_rs1_fwd, ex_rs2_fwd;
+
     id_ex_reg U_IDEX(
         .clock(clock),
         .id_pc(if_id_pc),
         .id_rs1_data(reg_data_1),
         .id_rs2_data(reg_data_2),
+        .id_rs1_addr(id_rs1_addr),
+        .id_rs2_addr(id_rs2_addr),
         .id_imm(imm),
         .id_funct3(if_id_inst[14:12]),
         .id_inst30(if_id_inst[30]),
@@ -122,6 +134,8 @@ module top(
         .ex_pc(id_ex_pc),
         .ex_rs1_data(id_ex_rs1),
         .ex_rs2_data(id_ex_rs2),
+        .ex_rs1_addr(id_ex_rs1_addr),
+        .ex_rs2_addr(id_ex_rs2_addr),
         .ex_imm(id_ex_imm),
         .ex_funct3(id_ex_funct3),
         .ex_inst30(id_ex_inst30),
@@ -138,6 +152,35 @@ module top(
         .ex_jump(id_ex_jump)
     );
     
+    // forwarding logic for EX and MEM hazards
+    forwarding_unit i_forwarding(
+        .ex_mem_reg_write(ex_mem_reg_write),
+        .ex_mem_rd(ex_mem_rd),
+        .mem_wb_reg_write(wb_reg_write),
+        .mem_wb_rd(wb_rd),
+        .id_ex_rs1_addr(id_ex_rs1_addr),
+        .id_ex_rs2_addr(id_ex_rs2_addr),
+        .forwardA(forwardA),
+        .forwardB(forwardB)
+    );
+
+    // Forwarding muxes for ALU inputs (and store data via ex_rs2_fwd)
+    mux_3x1 fwdA_mux(
+        .i0(id_ex_rs1),         // 00: original rs1
+        .i1(wb_write_data),     // 01: from MEM/WB
+        .i2(ex_mem_alu_result), // 10: from EX/MEM
+        .sel(forwardA),
+        .d(ex_rs1_fwd)
+    );
+
+    mux_3x1 fwdB_mux(
+        .i0(id_ex_rs2),         // 00: original rs2
+        .i1(wb_write_data),     // 01: from MEM/WB
+        .i2(ex_mem_alu_result), // 10: from EX/MEM
+        .sel(forwardB),
+        .d(ex_rs2_fwd)
+    );
+
     mux_2x1 alu_src_mux(
         .i0(id_ex_rs2),
         .i1(id_ex_imm),
@@ -154,7 +197,7 @@ module top(
     
     alu i_alu(
         .control(alu_control_signal),
-        .a(id_ex_rs1),
+        .a(ex_rs1_fwd),
         .b(alu_src_data),
         .zero(zero),
         .d(alu_result)
@@ -193,7 +236,7 @@ module top(
     ex_mem_reg U_EXMEM(
         .clock(clock),
         .ex_alu_result(alu_result),
-        .ex_write_data(id_ex_rs2),
+        .ex_write_data(ex_rs2_fwd),
         .ex_rd(id_ex_rd),
         .ex_mem_write(id_ex_mem_write),
         .ex_mem_read(id_ex_mem_read),

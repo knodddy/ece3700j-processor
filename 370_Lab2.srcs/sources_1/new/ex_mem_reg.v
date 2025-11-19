@@ -4,6 +4,7 @@ module ex_mem_reg(
   input      [31:0]  ex_alu_result,
   input      [31:0]  ex_write_data,
   input      [4:0]   ex_rd,
+  input      [4:0]   ex_rs2_addr,
   input              ex_mem_write,
   input              ex_mem_read,
   input              ex_mem_to_reg,
@@ -15,6 +16,7 @@ module ex_mem_reg(
   output reg [31:0]  mem_alu_result,
   output reg [31:0]  mem_write_data,
   output reg [4:0]   mem_rd,
+  output reg [4:0]   mem_rs2_addr,
   output reg         mem_mem_write,
   output reg         mem_mem_read,
   output reg         mem_mem_to_reg,
@@ -28,6 +30,7 @@ module ex_mem_reg(
     mem_alu_result = 32'd0;
     mem_write_data = 32'd0;
     mem_rd         = 5'd0;
+    mem_rs2_addr   = 5'd0;
     mem_mem_write  = 1'b0;
     mem_mem_read   = 1'b0;
     mem_mem_to_reg = 1'b0;
@@ -40,6 +43,7 @@ module ex_mem_reg(
     mem_alu_result <= ex_alu_result;
     mem_write_data <= ex_write_data;
     mem_rd         <= ex_rd;
+    mem_rs2_addr   <= ex_rs2_addr;
 
     mem_mem_write  <= ex_mem_write;
     mem_mem_read   <= ex_mem_read;

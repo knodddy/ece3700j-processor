@@ -52,6 +52,16 @@ module top(
     
     wire [31:0] mem_data;
 
+    wire [31:0] ex_mem_alu_result, ex_mem_write_data, ex_mem_pc_plus4;
+    wire [4:0] ex_mem_rd, ex_mem_rs2_addr;
+    wire ex_mem_mem_write, ex_mem_mem_read, ex_mem_mem_to_reg, ex_mem_reg_write, ex_mem_jump;
+    wire [2:0] ex_mem_funct3;
+
+    wire [31:0] wb_read_data, wb_alu_result, wb_pc_plus4;
+    wire [4:0] wb_rd;
+    wire wb_mem_to_reg, wb_reg_write, wb_jump;
+    wire [31:0] wb_write_data;
+
     pc_reg i_pc_reg (.clock(clock), .next_pc(q_pc), .pc(pc));
     inst_mem i_inst_mem (.pc(pc), .inst(inst));
     adder pc_incrementer (.a(pc), .b(32'd4), .d(next_pc));
@@ -228,16 +238,12 @@ module top(
         .d(q_pc)
     );
 
-    wire [31:0] ex_mem_alu_result, ex_mem_write_data, ex_mem_pc_plus4;
-    wire [4:0] ex_mem_rd;
-    wire ex_mem_mem_write, ex_mem_mem_read, ex_mem_mem_to_reg, ex_mem_reg_write, ex_mem_jump;
-    wire [2:0] ex_mem_funct3;
-
     ex_mem_reg U_EXMEM(
         .clock(clock),
         .ex_alu_result(alu_result),
         .ex_write_data(ex_rs2_fwd),
         .ex_rd(id_ex_rd),
+        .ex_rs2_addr(id_ex_rs2_addr),
         .ex_mem_write(id_ex_mem_write),
         .ex_mem_read(id_ex_mem_read),
         .ex_mem_to_reg(id_ex_mem_to_reg),
@@ -248,6 +254,7 @@ module top(
         .mem_alu_result(ex_mem_alu_result),
         .mem_write_data(ex_mem_write_data),
         .mem_rd(ex_mem_rd),
+        .mem_rs2_addr(ex_mem_rs2_addr),
         .mem_mem_write(ex_mem_mem_write),
         .mem_mem_read(ex_mem_mem_read),
         .mem_mem_to_reg(ex_mem_mem_to_reg),
@@ -257,19 +264,31 @@ module top(
         .mem_funct3(ex_mem_funct3)
     );
 
+    wire [31:0] mem_stage_write_data;
+    wire memsrc;
+
+    assign memsrc = ex_mem_mem_write &&
+                    wb_mem_to_reg &&
+                    wb_reg_write &&
+                    (wb_rd != 5'd0) &&
+                    (wb_rd == ex_mem_rs2_addr);
+
+    mux_2x1 mem_write_data_mux(
+        .i0(ex_mem_write_data),
+        .i1(wb_read_data),
+        .sel(memsrc),
+        .d(mem_stage_write_data)
+    );
+
     data_mem i_data_mem(
         .clock(clock),
         .addr(ex_mem_alu_result),
-        .write_data(ex_mem_write_data),
+        .write_data(mem_stage_write_data),
         .mem_write(ex_mem_mem_write),
         .mem_read(ex_mem_mem_read),
         .funct3(ex_mem_funct3),
         .data(mem_data)
     );
-
-    wire [31:0] wb_read_data, wb_alu_result, wb_pc_plus4;
-    wire [4:0] wb_rd;
-    wire wb_mem_to_reg, wb_reg_write, wb_jump;
 
     mem_wb_reg U_MEMWB(
         .clock(clock),
@@ -289,7 +308,6 @@ module top(
         .wb_pc_plus4(wb_pc_plus4)
     );
 
-    wire [31:0] wb_write_data;
     assign wb_write_data = wb_mem_to_reg ? wb_read_data : (wb_jump ? wb_pc_plus4 : wb_alu_result);
     assign mem_to_reg_data = wb_write_data;
 endmodule

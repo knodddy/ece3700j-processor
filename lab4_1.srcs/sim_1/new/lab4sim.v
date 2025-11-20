@@ -37,4 +37,5 @@ module lab4sim;
         end
         $finish();
     end
+    
 endmodule

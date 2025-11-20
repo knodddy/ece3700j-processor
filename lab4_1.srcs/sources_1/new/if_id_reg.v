@@ -20,6 +20,5 @@ module if_id_reg(
       id_pc   <= if_pc;
       id_inst <= if_inst;
     end
-    // else 保持
   end
 endmodule

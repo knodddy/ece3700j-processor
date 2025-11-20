@@ -82,7 +82,7 @@ module top(
         .inst(inst)
     );
 
-    // pc + 4，作为"顺序执行"的下一条 PC
+    // pc + 4
     adder pc_incrementer (
         .a(pc), 
         .b(32'd4), 
@@ -163,11 +163,8 @@ module top(
         .if_id_rs1      (id_rs1_addr),
         .if_id_rs2      (id_rs2_addr),
 
-        // 这里建议在 hazard_detection 里，把 "控制转移" 统一看作：
-        // id_final_sel_new != 2'b00 就表示当前 ID 指令改变了 PC（branch taken / jal / jalr）
-        // if_id_is_branch 信号可以不用只看 branch，而是结合 id_final_sel_new 来判断
-        .if_id_is_branch(branch),       // 如果你修改了接口，可以改成 .if_id_is_ctrl(id_final_sel_new != 2'b00)
-
+        // if id_final_sel_new != 2'b00，the current ID control changes PC（branch taken / jal / jalr）
+        .if_id_is_branch(branch),       
         .id_final_sel   (id_final_sel_new),
 
         .PC_write       (PC_write),
@@ -179,7 +176,7 @@ module top(
     wire [31:0] br_op1_id;
     wire [31:0] br_op2_id;
     
-    // EX/MEM -> ID forwarding（用于 branch / jalr 的 rs1 / rs2）
+    // EX/MEM -> ID forwarding（for branch / jalr rs1 / rs2）
     assign br_op1_id =
         (ex_mem_reg_write && (ex_mem_rd != 5'd0) && (ex_mem_rd == id_rs1_addr))
             ? ex_mem_alu_result
@@ -206,16 +203,15 @@ module top(
         .final_sel  (id_final_sel_new)
     );
     
-    // *** 重要修改 1：jalr 目标地址要用"已经做了 ID 阶段 forwarding 的 rs1"
-    // 否则如果上一条指令刚写 rs1，这里会用到旧值
+    // jalr target address, ID stage forwarding for rs1"
     wire [31:0] jalr_sum;
     adder id_jalr_calculate_new(
-        .a(br_op1_id),   // 原来是 reg_data_1，这里改成 br_op1_id
+        .a(br_op1_id),  
         .b(imm),
         .d(jalr_sum)
     );
 
-    // RISC-V 规定 jalr 目标地址最低位清零
+    // jalr target address, the last bit should be 0
     wire [31:0] id_jalr_target_new = {jalr_sum[31:1], 1'b0};
     
     wire [31:0] id_pc_plus_imm_new;
@@ -225,10 +221,10 @@ module top(
         .d(id_pc_plus_imm_new)
     );
     
-    // 最终 PC 选择：
-    // sel = 2'b00: 顺序执行 PC+4
-    // sel = 2'b01: branch taken 或 jal（PC + imm）
-    // sel = 2'b10: jalr（rs1 + imm，对齐）
+    // final pc choice:
+    // sel = 2'b00: PC+4
+    // sel = 2'b01: branch taken or jal（PC + imm）
+    // sel = 2'b10: jalr（rs1 + imm+ last bit 0)
     mux_3x1 id_sel_pc_new(
         .i0(next_pc),
         .i1(id_pc_plus_imm_new),
@@ -398,7 +394,7 @@ module top(
     wire [31:0] mem_stage_write_data;
     wire memsrc;
 
-    // store-after-load 的 MEM hazard：把刚 load 出来的数据直接 forward 给 store
+    // load-store (MEM hazard)：the loaded data directly forward to store
     assign memsrc = ex_mem_mem_write &&
                     wb_mem_to_reg &&
                     wb_reg_write &&
@@ -446,10 +442,10 @@ module top(
     
     
 ////////////////////////////////////////////////////WB////////////////////////////////////////////////////
-    // WB 选择：
-    // mem_to_reg = 1: 从数据存储器读出（load）
-    // mem_to_reg = 0 且 jump = 1: 写回 PC+4（jal / jalr）
-    // 其他：写回 ALU 结果
+    // WB choice：
+    // mem_to_reg = 1: read from reg（load）
+    // mem_to_reg = 0 and jump = 1: write back PC+4（jal / jalr）
+    // others：write ALU result
     assign wb_write_data = wb_mem_to_reg 
                            ? wb_read_data 
                            : (wb_jump ? wb_pc_plus4 : wb_alu_result);

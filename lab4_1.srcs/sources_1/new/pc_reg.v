@@ -27,7 +27,7 @@ module pc_reg(
     output reg [31:0] pc
 );
     initial begin
-        pc = 32'd0;   // 让 pc 从 0 开始
+        pc = 32'd0;   // initialize pc to 0
     end
     always @(posedge clock) begin
         if (PC_write)

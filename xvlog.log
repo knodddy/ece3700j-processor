@@ -1,0 +1,9 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/knoddy/Documents/Vivado/370_Lab2/cache.v" into library work
+INFO: [VRFC 10-311] analyzing module Cache
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/knoddy/Documents/Vivado/370_Lab2/main_memory.v" into library work
+INFO: [VRFC 10-311] analyzing module main_memory
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/knoddy/Documents/Vivado/370_Lab2/CPU.v" into library work
+INFO: [VRFC 10-311] analyzing module CPU
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/knoddy/Documents/Vivado/370_Lab2/Lab5_cache_test.v" into library work
+INFO: [VRFC 10-311] analyzing module top
+INFO: [VRFC 10-311] analyzing module CacheTest

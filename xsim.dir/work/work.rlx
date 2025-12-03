@@ -1,0 +1,9 @@
+0.7
+2020.2
+Nov  8 2024
+22:36:57
+C:/Users/knoddy/Documents/Vivado/370_Lab2/370_Lab2.sim/sim_1/behav/xsim/glbl.v,1724786425,verilog,,,,glbl,,,,,,,,
+C:/Users/knoddy/Documents/Vivado/370_Lab2/CPU.v,1764760665,verilog,,C:/Users/knoddy/Documents/Vivado/370_Lab2/Lab5_cache_test.v,,CPU,,,,,,,,
+C:/Users/knoddy/Documents/Vivado/370_Lab2/Lab5_cache_test.v,1764757434,verilog,,,,CacheTest;top,,,,,,,,
+C:/Users/knoddy/Documents/Vivado/370_Lab2/cache.v,1764759893,verilog,,C:/Users/knoddy/Documents/Vivado/370_Lab2/main_memory.v,,Cache,,,,,,,,
+C:/Users/knoddy/Documents/Vivado/370_Lab2/main_memory.v,1764759854,verilog,,C:/Users/knoddy/Documents/Vivado/370_Lab2/CPU.v,,main_memory,,,,,,,,

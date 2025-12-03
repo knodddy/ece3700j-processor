@@ -6,37 +6,20 @@ module top( input clk);
     wire [9:0]   address_cache;
     wire [31:0]  read_data_cache, write_data_cache;
     // interface between cache and main memory
-    wire [31:0]  write_data_mem,read_data_mem;
+    wire [127:0]  write_data_mem,read_data_mem;
     wire [9:0]   address_mem;
     wire read_write_mem, Done;
+    wire [9:0] addr_used_main_memory;
+    wire [4:0] request_num;
+    
     // You may add the signal you need and modify some signals if necessary
 
-    Cache U_CACHE(
-    // ---- CPU side ----
-    .cpu_read_write(read_write_cache),   // from CPU
-    .cpu_address    (address_cache),     // from CPU
-    .cpu_write_data (write_data_cache),  // from CPU
-    .cpu_read_data  (read_data_cache),   // to   CPU
-    .cpu_done       (cache_done),        // 可留着看波形
-    .cpu_hit        (hit_miss),          // to   CPU.hit_miss
+    Cache Cache(read_write_cache, address_cache, write_data_cache, Done, read_data_mem, read_data_cache, hit_miss, read_write_mem, address_mem, write_data_mem,addr_used_main_memory);
+    main_memory mem_db(read_write_mem, address_mem, write_data_mem, read_data_mem, Done);
+    CPU CPU_db(hit_miss, clk,read_data_cache,read_write_cache, address_cache, write_data_cache,request_num);
+    
+    // Sequence of the inputs do not matter, as long as it satisfies your own design
 
-    // ---- Memory side ----
-    .mem_read_write (read_write_mem),    // to   main_memory.read_write_mem
-    .mem_address    (address_mem),       // to   main_memory.address_mem
-    .mem_write_data (write_data_mem),    // to   main_memory.write_data_mem
-    .mem_read_data  (read_data_mem),     // from main_memory.read_data_mem
-    .mem_done       (Done)               // from main_memory.Done
-);
-
-    main_memory mem_db(
-        .read_write_mem (read_write_mem),
-        .address_mem    (address_mem),
-        .write_data_mem (write_data_mem),
-        .read_data_mem  (read_data_mem),
-        .Done           (Done)
-    );
-    // NOTE: added `clk` to main_memory instantiation since memory FSM is clocked
-    CPU CPU_db(hit_miss, clk,read_data_cache,read_write_cache, address_cache, write_data_cache);
 endmodule
 
 module CacheTest;
@@ -63,8 +46,11 @@ module CacheTest;
             $display("hit_miss = %d", test.hit_miss);
             $display("read_write_cache = %d", test.read_write_cache);
             $display("Request number %d", test.request_num);
+            if (test.hit_miss && test.read_write_cache == 1'b0)
+                $display("// result = %H", test.read_data_cache);
             $display("===============================================");
-            
+            if (test.request_num == 5'd11 && test.hit_miss)
+                #1 $stop;
     end
     initial
         #200 $stop;

@@ -11,8 +11,30 @@ module top( input clk);
     wire read_write_mem, Done;
     // You may add the signal you need and modify some signals if necessary
 
-    Cache Cache(read_write_cache, address_cache, write_data_cache, Done, read_data_mem, read_data_cache, hit_miss, read_write_mem, address_mem, write_data_mem);
-    main_memory mem_db(clk, read_write_mem, address_mem, write_data_mem, read_data_mem, Done);
+    Cache U_CACHE(
+    // ---- CPU side ----
+    .cpu_read_write(read_write_cache),   // from CPU
+    .cpu_address    (address_cache),     // from CPU
+    .cpu_write_data (write_data_cache),  // from CPU
+    .cpu_read_data  (read_data_cache),   // to   CPU
+    .cpu_done       (cache_done),        // 可留着看波形
+    .cpu_hit        (hit_miss),          // to   CPU.hit_miss
+
+    // ---- Memory side ----
+    .mem_read_write (read_write_mem),    // to   main_memory.read_write_mem
+    .mem_address    (address_mem),       // to   main_memory.address_mem
+    .mem_write_data (write_data_mem),    // to   main_memory.write_data_mem
+    .mem_read_data  (read_data_mem),     // from main_memory.read_data_mem
+    .mem_done       (Done)               // from main_memory.Done
+);
+
+    main_memory mem_db(
+        .read_write_mem (read_write_mem),
+        .address_mem    (address_mem),
+        .write_data_mem (write_data_mem),
+        .read_data_mem  (read_data_mem),
+        .Done           (Done)
+    );
     // NOTE: added `clk` to main_memory instantiation since memory FSM is clocked
     CPU CPU_db(hit_miss, clk,read_data_cache,read_write_cache, address_cache, write_data_cache);
 endmodule

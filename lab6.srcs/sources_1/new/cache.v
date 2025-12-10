@@ -119,3 +119,81 @@ module Cache(
     end
 
 endmodule
+
+module associative_back_cache (
+    // From TLB / “CPU”
+    input         read_write_cache,     // 1 = write, 0 = read
+    input  [9:0]  address_cache,        // physical address
+    input  [31:0] write_data_cache,     // data from CPU/TLB
+
+    // From main memory
+    input  [31:0] read_data_mem,
+    input         done,                 // mem_done from main_memory
+
+    // Back to CPU
+    output [31:0] read_data_cache,
+    output        hit_miss,             // “request finished”
+
+    // To main memory
+    output        read_write_mem,
+    output [9:0]  address_mem,
+    output [31:0] write_data_mem
+);
+
+    // --- wires between wrapper and core Cache ---
+    wire        cpu_done;
+    wire        cpu_hit;
+    wire [31:0] cpu_read_data;
+
+    wire        mem_read_write_w;
+    wire [9:0]  mem_address_w;
+    wire [31:0] mem_write_data_w;
+
+    // connect core Cache
+    Cache core (
+        // CPU side
+        .cpu_read_write(read_write_cache),
+        .cpu_address    (address_cache),
+        .cpu_write_data (write_data_cache),
+        .cpu_read_data  (cpu_read_data),
+        .cpu_done       (cpu_done),
+        .cpu_hit        (cpu_hit),
+
+        // Memory side
+        .mem_read_write (mem_read_write_w),
+        .mem_address    (mem_address_w),
+        .mem_write_data (mem_write_data_w),
+        .mem_read_data  (read_data_mem),
+        .mem_done       (done)
+    );
+
+    // outputs to vm_test
+    assign read_data_cache = cpu_read_data;
+    assign hit_miss        = cpu_done;        // “op completed”
+    assign read_write_mem  = mem_read_write_w;
+    assign address_mem     = mem_address_w;
+    assign write_data_mem  = mem_write_data_w;
+    // debug views for vm_test: cache.tag[i], cache.valid[i], etc.
+    // 4 blocks, each block = 4 words = 128 bits
+
+    wire [3:0]  tag   [0:3];
+    wire        valid [0:3];
+    wire        dirty [0:3];
+    wire [127:0] block[0:3];
+
+    genvar gi;
+    generate
+        for (gi = 0; gi < 4; gi = gi + 1) begin : mirror
+            assign tag[gi]   = core.tag_reg[gi];
+            assign valid[gi] = core.valid[gi];
+            assign dirty[gi] = core.dirty[gi];
+
+            // pack 4×32-bit words into one 128-bit block
+            assign block[gi] = { core.data[gi][3],
+                                 core.data[gi][2],
+                                 core.data[gi][1],
+                                 core.data[gi][0] };
+        end
+    endgenerate
+
+endmodule

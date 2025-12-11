@@ -51,12 +51,12 @@ module vm_test;
         .page_fault(page_fault),
         .request_page_tag(request_page_tag)
     );
-    main_memory                   memory(
+    main_mem                      memory(
         .read_write_mem(read_write_mem),
         .address_mem(address_mem),
         .write_data_mem(write_data_mem),
         .read_data_mem(read_data_mem),
-        .Done(done)
+        .done(done)
     );
     page_table                    PT(
         .dirty_write_back(dirty_write_back),

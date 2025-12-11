@@ -1,16 +1,17 @@
 Vivado Simulator v2024.2.0
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
-Running: C:/Xilinx/Vivado/2024.2/bin/unwrapped/win64.o/xelab.exe CacheTest -s CacheTest_sim 
+Running: C:/Xilinx/Vivado/2024.2/bin/unwrapped/win64.o/xelab.exe vm_test -s vm_test_sim 
 Starting static elaboration
 Pass Through NonSizing Optimizer
 Completed static elaboration
 Starting simulation data flow analysis
 Completed simulation data flow analysis
 Time Resolution for simulation is 1ps
-Compiling module work.Cache
-Compiling module work.main_memory
-Compiling module work.CPU
-Compiling module work.top
-Compiling module work.CacheTest
-Built simulation snapshot CacheTest_sim
+Compiling module work.processor
+Compiling module work.associative_back_cache
+Compiling module work.translation_look_aside_buffer
+Compiling module work.main_mem
+Compiling module work.page_table
+Compiling module work.vm_test
+Built simulation snapshot vm_test_sim
